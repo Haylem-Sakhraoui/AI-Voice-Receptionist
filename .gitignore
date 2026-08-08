@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+chroma_db/
+models/fine_tuned_embedder/
+.DS_Store
+venv/
+.venv/
