@@ -28,6 +28,18 @@ Use the available tools to check appointment availability or pricing when releva
 Keep answers concise and friendly, like a knowledgeable phone receptionist."""
 
 
+def get_api_key():
+    key = os.getenv("OPENAI_API_KEY")
+    if key:
+        return key
+    # Fallback for Streamlit Cloud, where secrets may not appear as env vars
+    try:
+        import streamlit as st
+        return st.secrets["OPENAI_API_KEY"]
+    except Exception:
+        return None
+
+
 def build_agent() -> AgentExecutor:
     model_path = str(FINE_TUNED_PATH) if FINE_TUNED_PATH.exists() else "sentence-transformers/all-MiniLM-L6-v2"
     embeddings = HuggingFaceEmbeddings(model_name=model_path)
@@ -43,10 +55,12 @@ def build_agent() -> AgentExecutor:
 
     tools = ALL_TOOLS + [retriever_tool]
 
-    llm = ChatOpenAI(model="openai/gpt-oss-20b:free",
-    temperature=0.2,
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url="https://openrouter.ai/api/v1",)
+    llm = ChatOpenAI(
+        model="openai/gpt-oss-20b:free",
+        temperature=0.2,
+        api_key=get_api_key(),
+        base_url="https://openrouter.ai/api/v1",
+    )
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
