@@ -1,15 +1,23 @@
 """
-Simple Streamlit demo UI for the RAG assistant.
-Calls the local FastAPI backend at /chat.
+Streamlit demo UI for the RAG assistant.
+Calls the agent directly (no separate backend needed) so it works
+both locally and when deployed on Streamlit Community Cloud.
 """
-import requests
 import streamlit as st
 
-API_URL = "http://localhost:8000/chat"
+from pipeline.rag_chain import build_agent
 
 st.set_page_config(page_title="Domain RAG Assistant", page_icon="🔧")
 st.title("🔧 HVAC Knowledge Assistant (RAG Demo)")
 st.caption("Powered by a fine-tuned PyTorch embedding model + LangChain retrieval pipeline")
+
+
+@st.cache_resource
+def get_agent():
+    return build_agent()
+
+
+agent_executor = get_agent()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -26,9 +34,9 @@ if user_input := st.chat_input("Ask a question about HVAC service, pricing, or b
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
-                response = requests.post(API_URL, json={"message": user_input}, timeout=30)
-                reply = response.json()["reply"]
+                result = agent_executor.invoke({"input": user_input})
+                reply = result["output"]
             except Exception as e:
-                reply = f"Error reaching backend: {e}"
+                reply = f"Sorry, something went wrong: {e}"
             st.write(reply)
     st.session_state.messages.append({"role": "assistant", "content": reply})
