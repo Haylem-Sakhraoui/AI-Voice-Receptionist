@@ -3,6 +3,13 @@ Streamlit demo UI for the RAG assistant.
 Calls the agent directly (no separate backend needed) so it works
 both locally and when deployed on Streamlit Community Cloud.
 """
+import sys
+from pathlib import Path
+
+# Make sure the project root (containing pipeline/) is importable,
+# regardless of how the current working directory is set.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import streamlit as st
 
 from pipeline.rag_chain import build_agent
